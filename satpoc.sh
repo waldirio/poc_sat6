@@ -50,6 +50,7 @@ conf_base()
   echo "######################" | tee -a $LOG
 
   echo "# Stoping Firewall" | tee -a $LOG
+  echo "# Stopping Firewall" | tee -a $LOG
   # Firewall
   systemctl stop firewalld
   systemctl disable firewalld
@@ -134,6 +135,7 @@ hammer_general()
   # Start Sync
   # =====
   listIdStartSync=$(hammer -c /root/cli_config.yml repository list --organization ACME|awk '{print $1}'|grep -E '(^[0-9])')
+  listIdStartSync=$(hammer -c /root/cli_config.yml repository list --organization $ORGANIZATION|awk '{print $1}'|grep -E '(^[0-9])')
 
   for b in $listIdStartSync
   do
