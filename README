@@ -1,0 +1,16 @@
+Script to build a new Satellite 6 environment to POC or Tests
+
+* Register the machine at the correct pool
+* Do some configurations
+* Add the correct repos
+* Update the OS and install all necessary packages
+* Install katello
+* Install Satellite with a default user/password
+* Create Org and Location
+* Load manifest
+* Select and Define some repositories
+* Sync Packages
+* ....
+
+
+Waldirio
