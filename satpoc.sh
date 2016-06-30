@@ -96,12 +96,12 @@ katello_install()
 
 hammer_auth()
 {
-echo "
+cat << HAMMEREND > /root/cli_config.yml
 :foreman:
     :host: 'https://localhost/'
     :username: '$ADMIN_USER'
     :password: '$PASSWORD_ADMIN'
-" > /root/cli_config.yml
+HAMMEREND
 }
 
 hammer_general()
