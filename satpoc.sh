@@ -23,22 +23,32 @@ MANIFEST=""
 LOG="/var/log/satinstallation.log"
 
 
+logline()
+{
+  # Prints a message to stdout and to a log file
+  # The log file is defined by the $LOG global variable
+  echo "$1" | tee -a "$LOG"
+}
+
+
+
+
 start_time()
 {
   clear
-  echo "# Starting installation - $(date)" | tee -a $LOG
+  logline "# Starting installation - $(date)"
 }
 
 attach_ent()
 {
-  echo "# Attaching pool" | tee -a $LOG
+  logline "# Attaching pool"
   # Collect here the subs availabe to Satellite.
   subscription-manager attach --pool=xxxxxxxxxxxxxxxxxxxxxxxxx | tee -a $LOG
 }
 
 repos()
 {
-  echo "# Enabling repos" | tee -a $LOG
+  logline "# Enabling repos"
   # Repos for rhel7
   subscription-manager repos --disable "*" | tee -a $LOG
   subscription-manager repos --enable rhel-7-server-rpms --enable rhel-server-rhscl-7-rpms --enable rhel-7-server-satellite-6.1-rpms | tee -a $LOG
@@ -46,23 +56,33 @@ repos()
 
 conf_base()
 {
-  echo "# Basic Configurations" | tee -a $LOG
-  echo "######################" | tee -a $LOG
+  logline "# Basic Configurations"
+  logline "######################"
 
-  echo "# Stoping Firewall" | tee -a $LOG
-  echo "# Stopping Firewall" | tee -a $LOG
+  #echo "# Stopping Firewall" | tee -a $LOG
+  logline "# Setting Firewall Rules"
   # Firewall
-  systemctl stop firewalld
-  systemctl disable firewalld
+  firewall-cmd --add-port="53/udp" --add-port="53/tcp" \
+    --add-port="67/udp" --add-port="68/udp" \
+    --add-port="69/udp" --add-port="80/tcp" \
+    --add-port="443/tcp" --add-port="5647/tcp" \
+    --add-port="8140/tcp" \
+  && firewall-cmd --permanent --add-port="53/udp" --add-port="53/tcp" \
+    --add-port="67/udp" --add-port="68/udp" \
+    --add-port="69/udp" --add-port="80/tcp" \
+    --add-port="443/tcp" --add-port="5647/tcp" \
+    --add-port="8140/tcp"
+  #systemctl stop firewalld
+  #systemctl disable firewalld
   
 
-  echo "# Disabling Selinux" | tee -a $LOG
+  logline "# Disabling Selinux"
   # Selinux
   setenforce 0
   sed -i -e 's/=enforcing/=permissive/g' /etc/selinux/config 
 
 
-  echo "# Configuring hosts" | tee -a $LOG
+  logline "# Configuring hosts"
   # Hostname
   IP=$(ip a|grep "inet "|grep -v 127|awk '{print $2}'|cut -d/ -f1)
   HOSTNAME_FQDN=$(hostname)
@@ -80,15 +100,15 @@ conf_base()
 
 update_system()
 {
-  echo "# Updating the OS" | tee -a $LOG
-  echo "######################" | tee -a $LOG
+  logline "# Updating the OS"
+  logline "######################"
   yum update -y
 }
 
 katello_install()
 {
-  echo "# Installing the Katello" | tee -a $LOG
-  echo "######################" | tee -a $LOG
+  logline "# Installing the Katello"
+  logline "######################"
   yum install katello -y | tee -a $LOG
   #katello-installer --foreman-admin-username $ADMIN_USER --foreman-admin-password $PASSWORD_ADMIN | tee -a $LOG
   katello-installer --foreman-initial-organization $ORGANIZATION --foreman-initial-location $LOCATION --foreman-admin-username $ADMIN_USER --foreman-admin-password $PASSWORD_ADMIN | tee -a $LOG
@@ -96,12 +116,12 @@ katello_install()
 
 hammer_auth()
 {
-echo "
+cat << HAMMEREND > /root/cli_config.yml
 :foreman:
     :host: 'https://localhost/'
     :username: '$ADMIN_USER'
     :password: '$PASSWORD_ADMIN'
-" > /root/cli_config.yml
+HAMMEREND
 }
 
 hammer_general()
@@ -157,7 +177,7 @@ hammer_general()
 
 stop_time()
 {
-  echo "# Finishing the installation - $(date)" | tee -a $LOG
+  logline "# Finishing the installation - $(date)"
 }
 
 
